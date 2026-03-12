@@ -196,4 +196,3 @@ The current solution is designed to be validated with:
 - No backend or real-time server integration is implemented yet
 - Dashboard tile order is stored in local storage
 - UI preferences are stored in local storage
-- The map is fully static and does not use Google Maps or any third-party map provider
