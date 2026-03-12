@@ -145,7 +145,7 @@ export class SimulationService implements OnDestroy {
     const currentDestination = this.getDestination(t, inLoading, inDump);
 
     if (t.status === TRUCK_STATUS.DUMPING) {
-      const dwell = (this.truckDwellTime.get(t.id) || 0) + 1;
+      const dwell = (this.truckDwellTime.get(t.id) ?? 0) + 1;
       this.truckDwellTime.set(t.id, dwell);
 
       if (dwell < DUMP_DWELL_TICKS) {
@@ -155,8 +155,7 @@ export class SimulationService implements OnDestroy {
       }
 
       this.truckDwellTime.delete(t.id);
-      this.setDestination(t.id, 'load');
-      this.clearTruckRoute(t.id);
+      this.prepareTruckForDestination(t.id, 'load');
     } else {
       this.truckDwellTime.delete(t.id);
     }
@@ -167,21 +166,16 @@ export class SimulationService implements OnDestroy {
     const { x, y } = nextPosition;
 
     if (this.inZone(x, y, this.dumpZone) && t.status !== TRUCK_STATUS.DUMPING) {
-      this.truckDwellTime.set(t.id, 1);
-      this.setDestination(t.id, 'load');
-      this.clearTruckRoute(t.id);
-      return { ...t, x, y, speed: 0, status: TRUCK_STATUS.DUMPING };
+      return this.enterDumpState(t, x, y);
     }
 
     let status: Truck['status'];
     if (this.inZone(x, y, this.loadingZone)) {
       status = TRUCK_STATUS.LOADING;
-      this.setDestination(t.id, 'dump');
-      this.clearTruckRoute(t.id);
+      this.prepareTruckForDestination(t.id, 'dump');
     } else if (this.inZone(x, y, this.dumpZone)) {
       status = TRUCK_STATUS.DUMPING;
-      this.setDestination(t.id, 'load');
-      this.clearTruckRoute(t.id);
+      this.prepareTruckForDestination(t.id, 'load');
     } else {
       status = this.resolveTravelStatus(headingToDump);
     }
@@ -189,6 +183,20 @@ export class SimulationService implements OnDestroy {
     const speed = this.speedForStatus(status);
 
     return { ...t, x, y, speed, status };
+  }
+
+  /** Enter the dump state and prepare the return trip. */
+  private enterDumpState(truck: Truck, x: number, y: number): Truck {
+    this.truckDwellTime.set(truck.id, 1);
+    this.prepareTruckForDestination(truck.id, 'load');
+
+    return {
+      ...truck,
+      x,
+      y,
+      speed: 0,
+      status: TRUCK_STATUS.DUMPING
+    };
   }
 
   /** Resolve the current destination for a truck. */
@@ -291,6 +299,12 @@ export class SimulationService implements OnDestroy {
   private clearTruckRoute(truckId: string): void {
     this.truckPath.delete(truckId);
     this.truckPathIndex.delete(truckId);
+  }
+
+  /** Update the current destination and reset any cached path progress. */
+  private prepareTruckForDestination(truckId: string, destination: SimulationDestination): void {
+    this.setDestination(truckId, destination);
+    this.clearTruckRoute(truckId);
   }
 
   /** Stores the active destination a truck is currently traveling toward. */

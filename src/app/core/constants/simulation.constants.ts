@@ -14,6 +14,11 @@ export interface SimulationZone {
   readonly h: number;
 }
 
+export interface SiteDimensions {
+  readonly width: number;
+  readonly height: number;
+}
+
 export const SIMULATION_TICK_MS = 1000;
 export const INITIAL_TRUCK_COUNT = 3;
 export const DUMP_DWELL_TICKS = 3;
@@ -29,6 +34,11 @@ export const INITIAL_Y_RANGE = { min: 100, max: 700 } as const;
 export const INITIAL_MOVING_SPEED_RANGE = { min: 20, max: 60 } as const;
 export const ACTIVE_SPEED_RANGE = { min: 25, max: 60 } as const;
 export const JITTER_RANGE = { min: -DUMP_RECENTER_JITTER, max: DUMP_RECENTER_JITTER } as const;
+
+export const SITE_DIMENSIONS: SiteDimensions = {
+  width: 1000,
+  height: 800
+};
 
 export const LOADING_ZONE: SimulationZone = { x: 80, y: 80, w: 160, h: 160 };
 export const DUMP_ZONE: SimulationZone = { x: 820, y: 580, w: 160, h: 160 };

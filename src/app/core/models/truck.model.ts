@@ -1,3 +1,5 @@
+import { TruckStatusType } from '../constants/truck-status.constants';
+
 /**
  * Truck operational status.
  * - LOADING: Truck is at the loading zone, being loaded with material.
@@ -5,7 +7,7 @@
  * - DUMPING: Truck is at the dump zone, dumping material.
  * - IDLE: Truck is idle, waiting or between operations.
  */
-export type TruckStatus = 'LOADING' | 'HAULING' | 'DUMPING' | 'IDLE';
+export type TruckStatus = TruckStatusType;
 
 /**
  * Truck entity representing a vehicle in the fleet.

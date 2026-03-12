@@ -4,7 +4,7 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDragPreview
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DUMP_ZONE, HAUL_ROAD_TO_DUMP, LOADING_ZONE, SimulationZone } from '../../../core/constants/simulation.constants';
+import { DUMP_ZONE, HAUL_ROAD_TO_DUMP, LOADING_ZONE, SimulationZone, SITE_DIMENSIONS } from '../../../core/constants/simulation.constants';
 import { SimulationService } from '../../../core/services/simulation.service';
 import { FleetStore } from '../../../core/store/fleet.store';
 import { TRUCK_STATUS } from '../../../core/constants/truck-status.constants';
@@ -81,8 +81,7 @@ const DEFAULT_DASHBOARD_TILE_ORDER: readonly DashboardTileId[] = [
   'status-mix'
 ];
 
-const SITE_WIDTH = 1000;
-const SITE_HEIGHT = 800;
+const DASHBOARD_TILE_STORAGE_KEY = 'fleet-map.dashboard-tile-order';
 
 const STATUS_METRIC_CONFIG: readonly StatusMetricConfig[] = [
   {
@@ -156,7 +155,6 @@ export class FleetMapComponent implements OnInit, OnDestroy {
   readonly store = inject(FleetStore);
   private readonly sim = inject(SimulationService);
   private readonly platformId = inject(PLATFORM_ID);
-  private readonly dashboardTileStorageKey = 'fleet-map.dashboard-tile-order';
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private beforeUnloadHandler?: () => void;
 
@@ -205,7 +203,7 @@ export class FleetMapComponent implements OnInit, OnDestroy {
     return truckId ? this.mapTrucksById().get(truckId) : undefined;
   });
   readonly haulRoadPolylinePoints = HAUL_ROAD_TO_DUMP
-    .map(({ x, y }) => `${this.toPercent(x, SITE_WIDTH)},${this.toPercent(y, SITE_HEIGHT)}`)
+    .map(({ x, y }) => `${this.toPercent(x, SITE_DIMENSIONS.width)},${this.toPercent(y, SITE_DIMENSIONS.height)}`)
     .join(' ');
 
   /** Reorders dashboard tiles after a drag-and-drop action completes. */
@@ -392,7 +390,7 @@ export class FleetMapComponent implements OnInit, OnDestroy {
       return;
     }
 
-    localStorage.setItem(this.dashboardTileStorageKey, JSON.stringify(tileOrder));
+    localStorage.setItem(DASHBOARD_TILE_STORAGE_KEY, JSON.stringify(tileOrder));
   }
 
   /** Applies and persists a new dashboard tile order. */
@@ -413,7 +411,7 @@ export class FleetMapComponent implements OnInit, OnDestroy {
       return [...DEFAULT_DASHBOARD_TILE_ORDER];
     }
 
-    const savedOrder = localStorage.getItem(this.dashboardTileStorageKey);
+    const savedOrder = localStorage.getItem(DASHBOARD_TILE_STORAGE_KEY);
 
     if (!savedOrder) {
       return [...DEFAULT_DASHBOARD_TILE_ORDER];
@@ -448,10 +446,10 @@ export class FleetMapComponent implements OnInit, OnDestroy {
   private createMapZone(zone: ZoneConfig): MapZoneViewModel {
     return {
       label: zone.label,
-      left: this.toPercent(zone.x, SITE_WIDTH),
-      top: this.toPercent(zone.y, SITE_HEIGHT),
-      width: this.toPercent(zone.width, SITE_WIDTH),
-      height: this.toPercent(zone.height, SITE_HEIGHT),
+      left: this.toPercent(zone.x, SITE_DIMENSIONS.width),
+      top: this.toPercent(zone.y, SITE_DIMENSIONS.height),
+      width: this.toPercent(zone.width, SITE_DIMENSIONS.width),
+      height: this.toPercent(zone.height, SITE_DIMENSIONS.height),
       className: ZONE_CLASS_BY_FILL_TOKEN[zone.fillColorToken]
     };
   }
@@ -460,8 +458,8 @@ export class FleetMapComponent implements OnInit, OnDestroy {
   private createMapTruck(truck: Truck): MapTruckViewModel {
     return {
       ...truck,
-      left: this.toPercent(truck.x, SITE_WIDTH),
-      top: this.toPercent(truck.y, SITE_HEIGHT),
+      left: this.toPercent(truck.x, SITE_DIMENSIONS.width),
+      top: this.toPercent(truck.y, SITE_DIMENSIONS.height),
       title: this.createTruckTitle(truck)
     };
   }

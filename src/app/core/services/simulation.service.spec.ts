@@ -10,6 +10,7 @@ describe('SimulationService', () => {
   let mockStore: jasmine.SpyObj<Pick<FleetStore, 'set' | 'update' | 'trucks'>>;
 
   beforeEach(() => {
+    spyOn(console, 'error');
     mockStore = jasmine.createSpyObj<Pick<FleetStore, 'set' | 'update' | 'trucks'>>('FleetStore', ['set', 'update', 'trucks']);
     mockStore.trucks.and.returnValue([]);
 
@@ -45,11 +46,11 @@ describe('SimulationService', () => {
   });
 
   it('move should return a truck object with numeric coordinates and valid status', () => {
-    const truck = { id: 'T-001', x: 100, y: 100, speed: 0, status: 'LOADING' };
-    const updated = service.move(truck as any);
+    const truck: Truck = { id: 'T-001', x: 100, y: 100, speed: 0, status: TRUCK_STATUS.LOADING };
+    const updated = service.move(truck);
     expect(typeof updated.x).toBe('number');
     expect(typeof updated.y).toBe('number');
-    expect(['LOADING','HAULING','DUMPING','IDLE']).toContain(updated.status);
+    expect(Object.values(TRUCK_STATUS)).toContain(updated.status);
   });
 
   it('should batch truck updates into a single store.set call during tick', () => {
