@@ -1,99 +1,119 @@
 # FleetSim
 
-FleetSim is an Angular 21 fleet operations dashboard that simulates haul-truck movement between loading and dumping zones. It combines a live telemetry panel, a static site map with truck markers, draggable KPI tiles, and accessible simulation controls in a single dispatch-style view.
+FleetSim is a frontend-only Angular 21 fleet operations dashboard that simulates haul-truck movement between a loading zone and a dump zone. The application combines live KPI tiles, a static site map, real-time truck telemetry, accessible controls, and responsive dashboard layouts in a single standalone Angular app.
 
-## Highlights
+## Current solution overview
 
-- Live fleet simulation powered by RxJS and Angular signals
-- Static operations map with stockpile zones, haul-road overlay, truck labels, and hover telemetry cards
-- Draggable summary tiles with keyboard reordering support
-- Responsive dashboard layout for desktop, tablet, and mobile screens
-- Angular Material UI for cards, buttons, and expandable legend content
-- Accessibility-focused interactions including live announcements, keyboard drag support, and text-plus-color status cues
-- Unit tests for simulation and store behavior
+- Angular 21 standalone application with no backend dependency
+- Signal-based state management for fleet data and UI view models
+- RxJS-driven simulation loop for truck movement and status transitions
+- Static site map rendered with HTML, CSS, and SVG overlays
+- Angular Material and CDK for dashboard UI and drag-and-drop interactions
+- Performance-oriented rendering using `ChangeDetectionStrategy.OnPush`, computed signals, and tracked `@for` loops
+- Keyboard-accessible tile reordering and live announcements for assistive technologies
 
-## Tech Stack
+## Key features
 
-- Angular 21 standalone components
-- Angular Signals
-- Angular CDK drag-and-drop
-- Angular Material
-- RxJS
-- TypeScript
-- Karma + Jasmine
+### Live fleet dashboard
 
-## Application Features
+- Summary tiles for fleet size, active units, average speed, and status mix
+- Drag-and-drop tile reordering with persisted browser storage state
+- Keyboard reordering with `Arrow` keys, `Home`, and `End`
+- Start and pause controls for the simulation loop
 
-### Fleet dashboard
+### Static operations map
 
-- Fleet size, active units, average speed, and status mix summary tiles
-- Drag-and-drop tile reordering with persisted order
-- Keyboard reordering using `Arrow` keys, `Home`, and `End`
-- Live simulation start/pause controls with status announcements
-
-### Operations map
-
-- Static site map rendered in the UI without external map providers
-- Loading and dumping zone overlays
-- Haul-road polyline connecting operating areas
-- Truck markers with status-based styling
-- Hover and focus telemetry cards showing speed and coordinates
+- Loading and dump zone overlays
+- Haul-road path rendered as an SVG polyline
+- Live truck markers with status-based styling
+- Hover and focus telemetry overlays for each truck
+- No external map provider or API key required
 
 ### Truck telemetry panel
 
-- Live fleet list with truck ID, status, speed, and coordinates
-- Clear status badges using both text and color
-- Responsive card layout for narrower screens
+- Live truck list with id, status, speed, and position
+- Clear status presentation using text and color together
+- Responsive layout for smaller viewport
 
-### Accessibility
+### Accessibility and UX
 
-- Screen-reader announcements for simulation state and tile reordering
-- Keyboard-accessible drag handles
-- Expand/collapse legend support
-- Reduced-motion friendly styling patterns
+- Polite live-region announcements for simulation state and tile movement
+- Keyboard-friendly drag handles and reorder interactions
+- Expandable truck status legend
+- Responsive dashboard layout and reduced-motion-friendly interaction patterns
 
-## How It Works
+## Technical architecture
 
-The app seeds an initial fleet, starts the simulation automatically, and updates truck movement on a timed interval. Trucks travel between configured loading and dump zones, follow predefined haul-road waypoints, pause during loading and dumping states, and then continue the cycle.
+### State and simulation
+
+- `FleetStore` manages the fleet and error state with Angular signals
+- `SimulationService` seeds the fleet, runs the timed simulation, manages routes, and updates truck status
+- `FleetMapComponent` orchestrates the dashboard UI, map display, accessibility messaging, and tile ordering
+
+### Shared modules
+
+- `src/app/constants` centralizes simulation and UI constants
+- `src/app/interfaces` centralizes fleet map view-model contracts
+- `fleet-map.utils.ts` contains pure transformation helpers for summaries, tile models, map models, and tile-order persistence
+
+### Performance-oriented Angular patterns
+
+- `ChangeDetectionStrategy.OnPush` in root and feature components
+- computed signals for derived UI state such as `truckCount`, `fleetSummary`, and map view models
+- tracked Angular `@for` loops for repeated UI blocks
+- simulation timer scheduled outside Angular zone and re-entered only for state updates
+- event coalescing enabled in `app.config.ts`
+
+## Simulation behavior
+
+The simulation starts automatically when the application loads.
+
+Each truck:
+
+1. starts with seeded position, speed, and status
+2. receives a destination of either the loading zone or dump zone
+3. follows configured haul-road waypoints
+4. transitions through loading, hauling, dumping, and idle states
+5. updates the signal store on every simulation tick
 
 Typical state flow:
 
 `LOADING → HAULING → DUMPING → HAULING/IDLE → LOADING`
 
-Core responsibilities are split across:
-
-- `SimulationService` for movement, route progression, dwell timing, and status transitions
-- `FleetStore` for signal-based truck state management
-- `FleetMapComponent` for dashboard presentation, tile reordering, map rendering, and telemetry display
-
-## Project Structure
+## Project structure
 
     src/
     ├── app/
-    │   ├── app.component.*
+    │   ├── app.component.html
+    │   ├── app.component.scss
+    │   ├── app.component.ts
     │   ├── app.config.ts
+    │   ├── constants/
+    │   │   ├── fleet-map.constants.ts
+    │   │   ├── simulation.constants.ts
+    │   │   └── truck-status.constants.ts
     │   ├── core/
-    │   │   ├── constants/
-    │   │   │   ├── simulation.constants.ts
-    │   │   │   └── truck-status.constants.ts
     │   │   ├── models/
     │   │   │   └── truck.model.ts
     │   │   ├── services/
-    │   │   │   ├── simulation.service.ts
-    │   │   │   └── simulation.service.spec.ts
+    │   │   │   ├── simulation.service.spec.ts
+    │   │   │   └── simulation.service.ts
     │   │   └── store/
-    │   │       ├── fleet.store.ts
-    │   │       └── fleet.store.spec.ts
-    │   └── features/
-    │       └── fleet-map/
-    │           └── components/
-    │               ├── fleet-map.component.ts
-    │               ├── fleet-map.component.html
-    │               ├── fleet-map.component.scss
-    │               └── fleet-map.component.spec.ts
+    │   │       ├── fleet.store.spec.ts
+    │   │       └── fleet.store.ts
+    │   ├── features/
+    │   │   └── fleet-map/
+    │   │       └── components/
+    │   │           ├── fleet-map.component.html
+    │   │           ├── fleet-map.component.scss
+    │   │           ├── fleet-map.component.spec.ts
+    │   │           ├── fleet-map.component.ts
+    │   │           └── fleet-map.utils.ts
+    │   └── interfaces/
+    │       └── fleet-map.interfaces.ts
     ├── environments/
-    │   ├── environment.ts
-    │   └── environment.prod.ts
+    │   ├── environment.prod.ts
+    │   └── environment.ts
     ├── index.html
     ├── main.ts
     └── styles.scss
@@ -103,7 +123,7 @@ Core responsibilities are split across:
 - Node.js 20 or later
 - npm 10 or later
 
-## Setup
+## Getting started
 
 1. Install dependencies:
 
@@ -113,32 +133,37 @@ Core responsibilities are split across:
 
     npm start
 
-3. Open http://localhost:4200/
+3. Open the application:
 
-No API keys or third-party map configuration are required.
+    http://localhost:4200/
 
-## Available Scripts
+## Available scripts
 
 - `npm start` - start the development server
-- `npm run start:prod` - start using the production configuration
+- `npm run start:prod` - start the app with the production configuration
 - `npm run build` - create a production build
 - `npm run build:prod` - create a production build with the production configuration
 - `npm test` - run tests in watch mode
 - `npm run test:ci` - run tests once in Chrome Headless
 - `npm run lint` - run linting
 - `npm run format` - format source files with Prettier
-- `npm run analyze` - build with stats and open bundle analysis
+- `npm run analyze` - generate bundle stats and open bundle analysis
 
 ## Testing
 
 The project uses Karma and Jasmine for unit testing.
 
-Run the CI-friendly test suite:
+Run the headless test suite:
 
     npm run test:ci
 
+Build the application:
+
+    npm run build
+
 ## Notes
 
-- The simulation starts automatically when the application loads.
-- Dashboard tile order is persisted in browser storage.
-- Environment files currently only expose the production flag and do not require additional runtime configuration.
+- This repository currently contains the Angular frontend only.
+- Dashboard tile order is stored in browser local storage.
+- Environment files currently expose only the production flag.
+- The current map experience is fully static and does not require any third-party mapping service.
