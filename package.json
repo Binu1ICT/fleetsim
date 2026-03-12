@@ -1,0 +1,58 @@
+{
+  "name": "mine-fleet-tracking",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise-grade Mine Site Truck Tracking System built using Angular 21, Signals, RxJS and Clean Architecture",
+  "license": "MIT",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "start:prod": "ng serve --configuration production",
+    "build": "ng build",
+    "build:prod": "ng build --configuration production",
+    "test": "ng test",
+    "test:ci": "ng test --watch=false --browsers=ChromeHeadless",
+    "lint": "ng lint",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,json,md}\"",
+    "analyze": "ng build --stats-json && npx webpack-bundle-analyzer dist/stats.json"
+  },
+  "dependencies": {
+    "@angular/cdk": "^21.2.2",
+    "@angular/common": "^21.2.3",
+    "@angular/compiler": "^21.2.3",
+    "@angular/core": "^21.2.3",
+    "@angular/material": "^21.2.2",
+    "@angular/platform-browser": "^21.2.3",
+    "@googlemaps/js-api-loader": "^1.16.8",
+    "rxjs": "^7.8.1",
+    "tslib": "^2.6.2",
+    "zone.js": "^0.16.1"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^21.2.2",
+    "@angular-eslint/eslint-plugin": "^19.0.0",
+    "@angular-eslint/eslint-plugin-template": "^19.0.0",
+    "@angular-eslint/template-parser": "^19.0.0",
+    "@angular/cli": "^21.2.2",
+    "@angular/compiler-cli": "^21.2.3",
+    "@types/google.maps": "^3.55.7",
+    "@types/jasmine": "^5.1.4",
+    "@types/node": "^20.11.30",
+    "@typescript-eslint/eslint-plugin": "^7.6.0",
+    "@typescript-eslint/parser": "^7.6.0",
+    "eslint": "^8.57.0",
+    "jasmine-core": "^5.1.1",
+    "karma": "^6.4.3",
+    "karma-chrome-launcher": "^3.2.0",
+    "karma-coverage": "^2.2.1",
+    "karma-jasmine": "^5.1.0",
+    "karma-jasmine-html-reporter": "^2.1.0",
+    "prettier": "^3.2.5",
+    "typescript": "~5.9.2",
+    "webpack-bundle-analyzer": "^4.10.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}

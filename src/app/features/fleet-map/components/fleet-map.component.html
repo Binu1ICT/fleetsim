@@ -1,0 +1,213 @@
+<section class="dashboard-shell" aria-labelledby="dashboard-title">
+  <div class="dashboard-hero">
+    <div class="hero-copy">
+      <p class="hero-kicker">Operations overview</p>
+      <h2 id="dashboard-title" class="hero-title">Live fleet coordination dashboard</h2>
+      <p class="hero-text">Monitor truck activity and movement state in a single operational view.</p>
+    </div>
+
+    <div class="hero-actions" role="group" aria-label="Simulation controls">
+      <button
+        class="sim-toggle"
+        type="button"
+        (click)="toggleSimulation()"
+        [attr.aria-pressed]="running()"
+        [attr.aria-label]="running() ? 'Pause simulation' : 'Start simulation'"
+      >
+        {{ running() ? 'Pause' : 'Start' }} Simulation
+      </button>
+      <div class="simulation-pill" [class.simulation-pill--active]="running()">
+        {{ running() ? 'Simulation running' : 'Simulation paused' }}
+      </div>
+    </div>
+  </div>
+
+  <p id="dashboard-reorder-help" class="sr-only">
+    To reorder summary tiles, drag with a mouse or touch gesture. For keyboard reordering, focus a tile drag handle and use the arrow keys. Use Home to move a tile to the first position and End to move it to the last position.
+  </p>
+
+  <section
+    class="summary-grid"
+    cdkDropList
+    cdkDropListOrientation="mixed"
+    [cdkDropListData]="dashboardTiles()"
+    (cdkDropListDropped)="dropDashboardTile($event)"
+    aria-describedby="dashboard-reorder-help"
+    aria-label="Fleet summary metrics"
+  >
+    @for (tile of dashboardTiles(); track tile.id; let index = $index) {
+      <mat-card class="summary-card" appearance="outlined" [class.summary-card--status]="tile.kind === 'status'" cdkDrag [cdkDragStartDelay]="tileDragStartDelay" cdkDragPreviewContainer="parent">
+        <div class="summary-card__header" mat-card-header>
+          <span class="summary-label">{{ tile.title }}</span>
+          <button
+            class="summary-drag-handle"
+            type="button"
+            mat-icon-button
+            cdkDragHandle
+            [attr.aria-label]="'Drag ' + tile.title + ' tile'"
+            [attr.aria-describedby]="'dashboard-reorder-help'"
+            aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
+            (keydown)="handleTileKeyboardReorder($event, index, tile.title)"
+            title="Drag to reorder"
+          >
+            <ng-container [ngTemplateOutlet]="dragHandleDots"></ng-container>
+          </button>
+        </div>
+
+        <div class="summary-card__content" mat-card-content>
+          <ng-container
+            [ngTemplateOutlet]="tileCardContent"
+            [ngTemplateOutletContext]="{ tile, decorative: false }"
+          ></ng-container>
+        </div>
+
+        <ng-template cdkDragPreview [matchSize]="true">
+          <mat-card class="summary-card summary-card--preview" appearance="outlined" [class.summary-card--status]="tile.kind === 'status'">
+            <div class="summary-card__header">
+              <span class="summary-label">{{ tile.title }}</span>
+              <span class="summary-drag-handle summary-drag-handle--preview" aria-hidden="true">
+                <ng-container [ngTemplateOutlet]="dragHandleDots"></ng-container>
+              </span>
+            </div>
+
+            <div class="summary-card__content">
+              <ng-container
+                [ngTemplateOutlet]="tileCardContent"
+                [ngTemplateOutletContext]="{ tile, decorative: true }"
+              ></ng-container>
+            </div>
+          </mat-card>
+        </ng-template>
+
+        <ng-template cdkDragPlaceholder>
+          <mat-card class="summary-card summary-card-placeholder" appearance="outlined" [class.summary-card--status]="tile.kind === 'status'" [class.summary-card-placeholder--status]="tile.kind === 'status'" aria-hidden="true">
+            <div class="summary-card__header">
+              <span class="summary-label">{{ tile.title }}</span>
+              <span class="summary-drag-handle summary-drag-handle--preview" aria-hidden="true">
+                <ng-container [ngTemplateOutlet]="dragHandleDots"></ng-container>
+              </span>
+            </div>
+
+            <div class="summary-card__content">
+              <ng-container
+                [ngTemplateOutlet]="tileCardContent"
+                [ngTemplateOutletContext]="{ tile, decorative: true }"
+              ></ng-container>
+            </div>
+          </mat-card>
+        </ng-template>
+      </mat-card>
+    }
+  </section>
+
+  <p class="sr-only" aria-live="polite" aria-atomic="true">{{ accessibilityAnnouncement() }}</p>
+
+  <ng-template #dragHandleDots>
+    <span class="summary-drag-handle__dots" aria-hidden="true">
+      <span></span><span></span><span></span>
+      <span></span><span></span><span></span>
+    </span>
+  </ng-template>
+
+  <ng-template #tileCardContent let-tile="tile" let-decorative="decorative">
+    @if (tile.kind === 'metric') {
+      <strong class="summary-value">{{ tile.value }}</strong>
+    } @else {
+      <div class="status-metrics" [attr.aria-label]="decorative ? null : 'Truck status summary'" [attr.aria-hidden]="decorative ? 'true' : null">
+        @for (metric of tile.statusMetrics; track metric.label) {
+          <div [class]="'status-metric ' + metric.className">
+            <span class="status-metric__label">{{ metric.label }}</span>
+            <strong class="status-metric__value">{{ metric.value }}</strong>
+          </div>
+        }
+      </div>
+    }
+
+    <span class="summary-caption">{{ tile.caption }}</span>
+  </ng-template>
+
+  <mat-accordion class="legend-accordion">
+    <mat-expansion-panel class="legend-panel">
+      <mat-expansion-panel-header aria-controls="truck-status-legend-content" tabindex="0">
+        <mat-panel-title>
+          <span id="legend-title" class="legend-title">Truck status legend</span>
+        </mat-panel-title>
+        <mat-panel-description>
+          Expand/collapse status guide
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+
+      <div id="truck-status-legend-content" class="legend" aria-labelledby="legend-title">
+        <ul class="legend-items" role="list">
+          @for (item of legendItems; track item.label) {
+            <li class="legend-item">
+              <svg class="legend-marker" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="legend-marker-circle" [class]="'legend-marker-circle ' + item.markerClass" cx="8" cy="8" r="6" />
+              </svg>
+              <span>{{ item.label }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</section>
+
+<p class="sr-only" aria-live="polite">Simulation is {{ running() ? 'running' : 'paused' }}.</p>
+
+<div class="workspace-grid">
+  <section class="truck-info-panel" aria-labelledby="fleet-status-title" aria-describedby="fleet-help">
+    <h2 id="fleet-status-title" class="panel-title">Fleet Status</h2>
+    <p id="fleet-help" class="assistive-note">Status is shown by both text and color. Current trucks: {{ store.trucks().length }}.</p>
+    <ul class="truck-cards" role="list" aria-label="Truck telemetry list">
+      @for (truck of store.trucks(); track truck.id) {
+        <li class="truck-card" [class]="'truck-card status--' + truck.status.toLowerCase()">
+          <div class="truck-header">
+            <span class="truck-id">{{ truck.id }}</span>
+            <div class="truck-status-badge" [class]="'truck-status-badge status--' + truck.status.toLowerCase()" [attr.aria-label]="'Status ' + truck.status">
+              {{ truck.status }}
+            </div>
+          </div>
+          <div class="truck-details">
+            <div class="detail-row">
+              <span class="detail-label">Speed:</span>
+              <span class="detail-value">{{ truck.speed }} km/h</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Position:</span>
+              <span class="detail-value">{{ truck.x | number:'1.0-0' }}, {{ truck.y | number:'1.0-0' }}</span>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  </section>
+
+  <section class="map-panel" aria-labelledby="map-title">
+    <div class="map-panel-header">
+      <div>
+        <h2 id="map-title" class="map-title">Fleet map</h2>
+        <p class="map-subtitle">Live truck locations, stockpile zones, and haul-road routing.</p>
+      </div>
+      <div class="map-panel-meta">Hover over a truck to inspect telemetry</div>
+    </div>
+    <p id="map-help" class="sr-only">Truck markers on the map include hover telemetry with status, speed, and position. The Fleet Status panel provides the same telemetry in text format.</p>
+    <div class="map" role="region" aria-labelledby="map-title">
+      <div #mapContainer class="map-canvas" role="img" tabindex="0" aria-label="Fleet map with truck markers" aria-describedby="map-help"></div>
+    </div>
+  </section>
+</div>
+
+<template #hoverTelemetryTemplate>
+  <div class="map-hover-card">
+    <div class="map-hover-header">
+      <div data-role="truck-id" class="map-hover-id"></div>
+      <div data-role="truck-status" class="map-hover-status"></div>
+    </div>
+    <div class="map-hover-grid">
+      <span class="map-hover-row-label">Speed</span><span data-role="truck-speed"></span>
+      <span class="map-hover-row-label">X</span><span data-role="truck-x"></span>
+      <span class="map-hover-row-label">Y</span><span data-role="truck-y"></span>
+    </div>
+  </div>
+</template>
