@@ -4,137 +4,28 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDragPreview
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { DUMP_ZONE, HAUL_ROAD_TO_DUMP, LOADING_ZONE, SimulationZone, SITE_DIMENSIONS } from '../../../core/constants/simulation.constants';
+import { HAUL_ROAD_TO_DUMP, SITE_DIMENSIONS } from '../../../constants/simulation.constants';
 import { SimulationService } from '../../../core/services/simulation.service';
 import { FleetStore } from '../../../core/store/fleet.store';
-import { TRUCK_STATUS } from '../../../core/constants/truck-status.constants';
+import { TRUCK_STATUS } from '../../../constants/truck-status.constants';
 import { Truck } from '../../../core/models/truck.model';
-
-interface ZoneConfig {
-  readonly x: number;
-  readonly y: number;
-  readonly width: number;
-  readonly height: number;
-  readonly label: string;
-  readonly fillColorToken: string;
-}
-
-type DashboardTileId = 'fleet-size' | 'active-units' | 'average-speed' | 'status-mix';
-type StatusSummaryKey = 'loading' | 'hauling' | 'dumping' | 'idle';
-
-interface FleetSummaryViewModel {
-  readonly total: number;
-  readonly active: number;
-  readonly avgSpeed: number;
-  readonly loading: number;
-  readonly hauling: number;
-  readonly dumping: number;
-  readonly idle: number;
-}
-
-interface StatusMetricViewModel {
-  readonly label: string;
-  readonly value: number;
-  readonly className: string;
-}
-
-interface LegendItemViewModel {
-  readonly label: string;
-  readonly markerClass: string;
-}
-
-interface StatusMetricConfig {
-  readonly label: string;
-  readonly key: StatusSummaryKey;
-  readonly className: string;
-  readonly markerClass: string;
-}
-
-interface DashboardTileViewModel {
-  readonly id: DashboardTileId;
-  readonly title: string;
-  readonly caption: string;
-  readonly kind: 'metric' | 'status';
-  readonly value?: string;
-  readonly statusMetrics?: readonly StatusMetricViewModel[];
-}
-
-interface MapZoneViewModel {
-  readonly label: string;
-  readonly left: number;
-  readonly top: number;
-  readonly width: number;
-  readonly height: number;
-  readonly className: string;
-}
-
-interface MapTruckViewModel extends Truck {
-  readonly left: number;
-  readonly top: number;
-  readonly title: string;
-}
-
-const DEFAULT_DASHBOARD_TILE_ORDER: readonly DashboardTileId[] = [
-  'fleet-size',
-  'active-units',
-  'average-speed',
-  'status-mix'
-];
-
-const DASHBOARD_TILE_STORAGE_KEY = 'fleet-map.dashboard-tile-order';
-
-const STATUS_METRIC_CONFIG: readonly StatusMetricConfig[] = [
-  {
-    label: 'Loading',
-    key: 'loading',
-    className: 'status--loading',
-    markerClass: 'legend-marker-circle--loading'
-  },
-  {
-    label: 'Hauling',
-    key: 'hauling',
-    className: 'status--hauling',
-    markerClass: 'legend-marker-circle--hauling'
-  },
-  {
-    label: 'Dumping',
-    key: 'dumping',
-    className: 'status--dumping',
-    markerClass: 'legend-marker-circle--dumping'
-  },
-  {
-    label: 'Idle',
-    key: 'idle',
-    className: 'status--idle',
-    markerClass: 'legend-marker-circle--idle'
-  }
-];
-
-const LEGEND_ITEMS: readonly LegendItemViewModel[] = STATUS_METRIC_CONFIG.map(({ label, markerClass }) => ({
-  label: label.toUpperCase(),
-  markerClass
-}));
-
-const ZONE_CLASS_BY_FILL_TOKEN: Record<ZoneConfig['fillColorToken'], string> = {
-  '--map-zone-loading-fill': 'map-zone-card--loading',
-  '--map-zone-dump-fill': 'map-zone-card--dumping'
-};
-
-function createZoneConfig(zone: SimulationZone, label: string, fillColorToken: ZoneConfig['fillColorToken']): ZoneConfig {
-  return {
-    x: zone.x,
-    y: zone.y,
-    width: zone.w,
-    height: zone.h,
-    label,
-    fillColorToken
-  };
-}
-
-const MAP_ZONES: readonly ZoneConfig[] = [
-  createZoneConfig(LOADING_ZONE, 'Stockpile Lot 1', '--map-zone-loading-fill'),
-  createZoneConfig(DUMP_ZONE, 'Stockpile Lot 2', '--map-zone-dump-fill')
-];
+import {
+  DASHBOARD_TILE_STORAGE_KEY,
+  DEFAULT_DASHBOARD_TILE_ORDER,
+  LEGEND_ITEMS,
+  MAP_ZONES,
+  STATUS_METRIC_CONFIG,
+  ZONE_CLASS_BY_FILL_TOKEN
+} from '../../../constants/fleet-map.constants';
+import type {
+  DashboardTileId,
+  DashboardTileViewModel,
+  FleetSummaryViewModel,
+  MapTruckViewModel,
+  MapZoneViewModel,
+  StatusMetricViewModel,
+  ZoneConfig
+} from '../../../interfaces/fleet-map.interfaces';
 
 @Component({
   selector: 'fleet-map',

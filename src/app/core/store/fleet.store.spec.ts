@@ -1,6 +1,6 @@
 import { FleetStore } from './fleet.store';
 import { Truck } from '../models/truck.model';
-import { TRUCK_STATUS } from '../constants/truck-status.constants';
+import { TRUCK_STATUS } from '../../constants/truck-status.constants';
 
 describe('FleetStore', () => {
   let store: FleetStore;

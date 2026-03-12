@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { INITIAL_TRUCK_COUNT } from '../constants/simulation.constants';
-import { TRUCK_STATUS } from '../constants/truck-status.constants';
+import { INITIAL_TRUCK_COUNT } from '../../constants/simulation.constants';
+import { TRUCK_STATUS } from '../../constants/truck-status.constants';
 import { Truck } from '../models/truck.model';
 import { FleetStore } from '../store/fleet.store';
 import { SimulationService } from './simulation.service';

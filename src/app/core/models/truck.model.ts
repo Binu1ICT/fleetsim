@@ -1,4 +1,4 @@
-import { TruckStatusType } from '../constants/truck-status.constants';
+import { TruckStatusType } from '../../constants/truck-status.constants';
 
 /**
  * Truck operational status.

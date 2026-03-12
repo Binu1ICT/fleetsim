@@ -22,10 +22,10 @@ import {
   SimulationZone,
   SIMULATION_TICK_MS,
   WAYPOINT_PROXIMITY_THRESHOLD
-} from '../constants/simulation.constants';
+} from '../../constants/simulation.constants';
 import { FleetStore } from '../store/fleet.store';
 import { Truck } from '../models/truck.model';
-import { TRUCK_STATUS } from '../constants/truck-status.constants';
+import { TRUCK_STATUS } from '../../constants/truck-status.constants';
 
 @Injectable({ providedIn: 'root' })
 /**
