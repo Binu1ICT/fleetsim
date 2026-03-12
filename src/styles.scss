@@ -219,6 +219,64 @@ app-root {
   z-index: 2;
 }
 
+.map-zone-card {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 12px;
+  border: 2px solid transparent;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(2px);
+  z-index: 1;
+}
+
+.map-zone-card--loading {
+  background: color-mix(in srgb, var(--map-zone-loading-fill) 34%, transparent);
+  border-color: var(--map-zone-loading-stroke);
+}
+
+.map-zone-card--dumping {
+  background: color-mix(in srgb, var(--map-zone-dump-fill) 24%, transparent);
+  border-color: var(--map-zone-dump-stroke);
+}
+
+.map-zone-card__label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--map-zone-tag-text);
+  border: 1px solid var(--map-zone-tag-border);
+  box-shadow: var(--map-zone-tag-shadow);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.map-road-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.map-road-line {
+  fill: none;
+  stroke: var(--map-road-stroke);
+  stroke-width: 0.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1.2 1.5;
+  opacity: 0.78;
+}
+
 .map-hover-overlay {
   position: absolute;
   transform: translate(18px, -100%);
@@ -276,7 +334,7 @@ app-root {
 
 .truck-map-label {
   position: absolute;
-  transform: translate(2px, -100%);
+  transform: translate(16px, -50%);
   background-color: var(--map-truck-label-bg);
   border: 2px solid var(--map-truck-label-border);
   border-radius: 4px;
@@ -286,11 +344,17 @@ app-root {
   color: var(--map-truck-label-text);
   white-space: nowrap;
   box-shadow: var(--map-truck-label-shadow);
+  pointer-events: none;
+  z-index: 4;
 }
 
 .truck-map-marker {
-  width: 32px;
-  height: 32px;
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
   border-radius: 999px;
   background: var(--truck-status-color, var(--map-status-default));
   border: 3px solid var(--map-marker-stroke);
@@ -298,10 +362,15 @@ app-root {
   cursor: pointer;
   transform: translate(-50%, -50%);
   opacity: 0.95;
+  z-index: 3;
 }
 
 .truck-map-marker__dot {
-  display: none;
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
 }
 
 /* ========================================

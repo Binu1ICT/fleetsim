@@ -187,27 +187,72 @@
     <div class="map-panel-header">
       <div>
         <h2 id="map-title" class="map-title">Fleet map</h2>
-        <p class="map-subtitle">Live truck locations, stockpile zones, and haul-road routing.</p>
+        <p class="map-subtitle">Live truck locations, stockpile zones, and haul-road routing on a static site background.</p>
       </div>
       <div class="map-panel-meta">Hover over a truck to inspect telemetry</div>
     </div>
     <p id="map-help" class="sr-only">Truck markers on the map include hover telemetry with status, speed, and position. The Fleet Status panel provides the same telemetry in text format.</p>
     <div class="map" role="region" aria-labelledby="map-title">
-      <div #mapContainer class="map-canvas" role="img" tabindex="0" aria-label="Fleet map with truck markers" aria-describedby="map-help"></div>
+      <div class="map-canvas map-canvas--static" role="img" tabindex="0" aria-label="Fleet map with truck markers" aria-describedby="map-help">
+        <svg class="map-road-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+          <polyline class="map-road-line" [attr.points]="haulRoadPolylinePoints"></polyline>
+        </svg>
+
+        @for (zone of mapZones; track zone.label) {
+          <div
+            [class]="'map-zone-card ' + zone.className"
+            [style.left.%]="zone.left"
+            [style.top.%]="zone.top"
+            [style.width.%]="zone.width"
+            [style.height.%]="zone.height"
+            aria-hidden="true">
+            <span class="map-zone-card__label">{{ zone.label }}</span>
+          </div>
+        }
+
+        @for (truck of mapTrucks(); track truck.id) {
+          <button
+            [class]="'truck-map-marker status--' + truck.status.toLowerCase()"
+            type="button"
+            [style.left.%]="truck.left"
+            [style.top.%]="truck.top"
+            [attr.aria-label]="truck.title"
+            (mouseenter)="showTruckHover(truck.id)"
+            (mouseleave)="hideTruckHover(truck.id)"
+            (focus)="showTruckHover(truck.id)"
+            (blur)="hideTruckHover(truck.id)">
+            <span class="truck-map-marker__dot" aria-hidden="true"></span>
+          </button>
+
+          <div
+            class="truck-map-label"
+            [style.left.%]="truck.left"
+            [style.top.%]="truck.top"
+            aria-hidden="true">
+            {{ truck.id }}
+          </div>
+        }
+
+        @if (hoveredTruck(); as truck) {
+          <div
+            class="map-hover-overlay"
+            [style.left.%]="truck.left"
+            [style.top.%]="truck.top"
+            aria-hidden="true">
+            <div class="map-hover-card">
+              <div class="map-hover-header">
+                <div class="map-hover-id">{{ truck.id }}</div>
+                <div [class]="'map-hover-status status--' + truck.status.toLowerCase()">{{ truck.status }}</div>
+              </div>
+              <div class="map-hover-grid">
+                <span class="map-hover-row-label">Speed</span><span>{{ truck.speed }} km/h</span>
+                <span class="map-hover-row-label">X</span><span>{{ truck.x | number:'1.0-0' }}</span>
+                <span class="map-hover-row-label">Y</span><span>{{ truck.y | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
     </div>
   </section>
 </div>
-
-<template #hoverTelemetryTemplate>
-  <div class="map-hover-card">
-    <div class="map-hover-header">
-      <div data-role="truck-id" class="map-hover-id"></div>
-      <div data-role="truck-status" class="map-hover-status"></div>
-    </div>
-    <div class="map-hover-grid">
-      <span class="map-hover-row-label">Speed</span><span data-role="truck-speed"></span>
-      <span class="map-hover-row-label">X</span><span data-role="truck-x"></span>
-      <span class="map-hover-row-label">Y</span><span data-role="truck-y"></span>
-    </div>
-  </div>
-</template>
