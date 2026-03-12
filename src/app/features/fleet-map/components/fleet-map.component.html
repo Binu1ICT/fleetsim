@@ -158,9 +158,9 @@
 <div class="workspace-grid">
   <section class="truck-info-panel" aria-labelledby="fleet-status-title" aria-describedby="fleet-help">
     <h2 id="fleet-status-title" class="panel-title">Fleet Status</h2>
-    <p id="fleet-help" class="assistive-note">Status is shown by both text and color. Current trucks: {{ store.trucks().length }}.</p>
+    <p id="fleet-help" class="assistive-note">Status is shown by both text and color. Current trucks: {{ truckCount() }}.</p>
     <ul class="truck-cards" role="list" aria-label="Truck telemetry list">
-      @for (truck of store.trucks(); track truck.id) {
+      @for (truck of trucks(); track truck.id) {
         <li class="truck-card" [class]="'truck-card status--' + truck.status.toLowerCase()">
           <div class="truck-header">
             <span class="truck-id">{{ truck.id }}</span>
