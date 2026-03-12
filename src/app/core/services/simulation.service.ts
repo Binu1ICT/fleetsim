@@ -1,8 +1,8 @@
-import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, inject, signal } from '@angular/core';
 import { interval, Subscription } from 'rxjs';
 import {
   ACTIVE_SPEED_RANGE,
-  DUMP_DWELL_TICKS,
+  DEFAULT_SIMULATION_SETTINGS,
   DUMP_RECENTER_FACTOR,
   DUMP_ZONE,
   DUMP_ROUTE_MOVEMENT_FACTOR,
@@ -10,7 +10,6 @@ import {
   HAUL_ROAD_TO_LOAD,
   INITIAL_MOVING_SPEED_RANGE,
   INITIAL_STATUSES,
-  INITIAL_TRUCK_COUNT,
   INITIAL_X_RANGE,
   INITIAL_Y_RANGE,
   JITTER_RANGE,
@@ -19,13 +18,14 @@ import {
   RETURN_IDLE_CHANCE,
   SimulationDestination,
   SimulationPoint,
+  SimulationSettings,
   SimulationZone,
-  SIMULATION_TICK_MS,
   WAYPOINT_PROXIMITY_THRESHOLD
 } from '../../constants/simulation.constants';
 import { FleetStore } from '../store/fleet.store';
 import { Truck } from '../models/truck.model';
 import { TRUCK_STATUS } from '../../constants/truck-status.constants';
+import { SIMULATION_SETTINGS } from '../tokens/simulation-settings.token';
 
 @Injectable({ providedIn: 'root' })
 /**
@@ -44,6 +44,8 @@ export class SimulationService implements OnDestroy {
 
   private readonly store = inject(FleetStore);
   private readonly ngZone = inject(NgZone);
+  private readonly initialSettings = inject(SIMULATION_SETTINGS, { optional: true }) ?? DEFAULT_SIMULATION_SETTINGS;
+  private readonly simulationSettings = signal<SimulationSettings>({ ...this.initialSettings });
 
   private tickSub?: Subscription;
 
@@ -63,8 +65,11 @@ export class SimulationService implements OnDestroy {
     if (this.tickSub && !this.tickSub.closed) {
       return;
     }
+
+    const { tickMs } = this.simulationSettings();
+
     this.ngZone.runOutsideAngular(() => {
-      this.tickSub = interval(SIMULATION_TICK_MS).subscribe({
+      this.tickSub = interval(tickMs).subscribe({
         next: () => {
           this.ngZone.run(() => this.tick());
         },
@@ -88,10 +93,57 @@ export class SimulationService implements OnDestroy {
     return !!this.tickSub && !this.tickSub.closed;
   }
 
+  /** Returns the current runtime simulation settings. */
+  getSettings(): SimulationSettings {
+    return this.simulationSettings();
+  }
+
+  /** Apply updated runtime settings and restart or reseed when required. */
+  updateSettings(nextSettings: Partial<SimulationSettings>): void {
+    const current = this.simulationSettings();
+    const updated: SimulationSettings = {
+      ...current,
+      ...nextSettings
+    };
+
+    if (
+      updated.truckCount === current.truckCount &&
+      updated.tickMs === current.tickMs &&
+      updated.dumpDwellTicks === current.dumpDwellTicks
+    ) {
+      return;
+    }
+
+    this.simulationSettings.set(updated);
+
+    if (updated.truckCount !== current.truckCount) {
+      this.resetFleet(updated.truckCount);
+      return;
+    }
+
+    if (updated.tickMs !== current.tickMs && this.isRunning()) {
+      this.stop();
+      this.start();
+    }
+  }
+
+  /** Reset the fleet using the active or supplied truck count. */
+  resetFleet(truckCount = this.simulationSettings().truckCount): void {
+    const wasRunning = this.isRunning();
+
+    this.stop();
+    this.clearSimulationState();
+    this.initFleet(truckCount);
+
+    if (wasRunning) {
+      this.start();
+    }
+  }
+
   /** Seed the store with an initial fleet state. */
-  initFleet(): void {
+  initFleet(truckCount = this.simulationSettings().truckCount): void {
     try {
-      const trucks = Array.from({ length: INITIAL_TRUCK_COUNT }, (_, index) => this.createInitialTruck(index + 1));
+      const trucks = Array.from({ length: truckCount }, (_, index) => this.createInitialTruck(index + 1));
 
       trucks.forEach(truck => {
         this.setDestination(truck.id, this.destinationForStatus(truck.status));
@@ -148,7 +200,7 @@ export class SimulationService implements OnDestroy {
       const dwell = (this.truckDwellTime.get(t.id) ?? 0) + 1;
       this.truckDwellTime.set(t.id, dwell);
 
-      if (dwell < DUMP_DWELL_TICKS) {
+      if (dwell < this.simulationSettings().dumpDwellTicks) {
         const x = t.x + (this.dumpZoneCenter.x - t.x) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
         const y = t.y + (this.dumpZoneCenter.y - t.y) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
         return { ...t, x, y, speed: 0, status: TRUCK_STATUS.DUMPING };
@@ -299,6 +351,14 @@ export class SimulationService implements OnDestroy {
   private clearTruckRoute(truckId: string): void {
     this.truckPath.delete(truckId);
     this.truckPathIndex.delete(truckId);
+  }
+
+  /** Clears all per-truck simulation caches before reseeding the fleet. */
+  private clearSimulationState(): void {
+    this.truckDwellTime.clear();
+    this.truckDestination.clear();
+    this.truckPathIndex.clear();
+    this.truckPath.clear();
   }
 
   /** Update the current destination and reset any cached path progress. */

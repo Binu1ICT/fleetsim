@@ -5,6 +5,7 @@ import { Truck } from '../models/truck.model';
 import { FleetStore } from '../store/fleet.store';
 import { SimulationService } from './simulation.service';
 
+/** Verifies core simulation lifecycle, mutation, and runtime-setting behavior. */
 describe('SimulationService', () => {
   let service: SimulationService;
   let mockStore: jasmine.SpyObj<Pick<FleetStore, 'set' | 'update' | 'trucks'>>;
@@ -25,7 +26,7 @@ describe('SimulationService', () => {
   });
 
   afterEach(() => {
-    try { service.stop(); } catch { }
+    service.stop();
   });
 
   it('should initialize fleet on construction', () => {
@@ -67,5 +68,23 @@ describe('SimulationService', () => {
     const updatedTrucks = mockStore.set.calls.mostRecent().args[0] as Truck[];
     expect(updatedTrucks.length).toBe(trucks.length);
     expect(updatedTrucks.map(truck => truck.id)).toEqual(trucks.map(truck => truck.id));
+  });
+
+  it('should expose and update runtime settings', () => {
+    service.updateSettings({ tickMs: 700, dumpDwellTicks: 5 });
+
+    expect(service.getSettings().tickMs).toBe(700);
+    expect(service.getSettings().dumpDwellTicks).toBe(5);
+  });
+
+  it('should reseed the fleet when truck count changes', () => {
+    mockStore.set.calls.reset();
+
+    service.updateSettings({ truckCount: 5 });
+
+    expect(service.getSettings().truckCount).toBe(5);
+    expect(mockStore.set).toHaveBeenCalled();
+    const seededTrucks = mockStore.set.calls.mostRecent().args[0] as Truck[];
+    expect(seededTrucks.length).toBe(5);
   });
 });

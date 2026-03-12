@@ -1,0 +1,49 @@
+<p id="dashboard-reorder-help" class="sr-only">
+  To reorder summary tiles, drag with a mouse or touch gesture. For keyboard reordering, focus a tile drag handle and use the arrow keys. Use Home to move a tile to the first position and End to move it to the last position.
+</p>
+
+<section
+  class="summary-grid"
+  cdkDropList
+  cdkDropListOrientation="mixed"
+  [cdkDropListData]="tiles()"
+  (cdkDropListDropped)="handleDrop($event)"
+  aria-describedby="dashboard-reorder-help"
+  aria-label="Fleet summary metrics">
+  @for (tile of tiles(); track tile.id; let index = $index) {
+    <mat-card class="summary-card" appearance="outlined" [class.summary-card--status]="tile.kind === 'status'" cdkDrag [cdkDragStartDelay]="tileDragStartDelay()" cdkDragPreviewContainer="parent">
+      <div class="summary-card__header" mat-card-header>
+        <span class="summary-label">{{ tile.title }}</span>
+        <button
+          class="summary-drag-handle"
+          type="button"
+          cdkDragHandle
+          [attr.aria-label]="'Drag ' + tile.title + ' tile'"
+          aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
+          (keydown)="handleTileKeyboardReorder($event, index, tile.title)">
+          <span class="summary-drag-handle__dots" aria-hidden="true">
+            <span></span><span></span><span></span>
+            <span></span><span></span><span></span>
+          </span>
+        </button>
+      </div>
+
+      <div class="summary-card__content" mat-card-content>
+        @if (tile.kind === 'metric') {
+          <strong class="summary-value">{{ tile.value }}</strong>
+        } @else {
+          <div class="status-metrics" aria-label="Truck status summary">
+            @for (metric of tile.statusMetrics; track metric.label) {
+              <div [class]="'status-metric ' + metric.className">
+                <span class="status-metric__label">{{ metric.label }}</span>
+                <strong class="status-metric__value">{{ metric.value }}</strong>
+              </div>
+            }
+          </div>
+        }
+
+        <span class="summary-caption">{{ tile.caption }}</span>
+      </div>
+    </mat-card>
+  }
+</section>

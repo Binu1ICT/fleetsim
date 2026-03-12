@@ -1,0 +1,198 @@
+.toolbar-shell {
+  display: grid;
+  gap: var(--space-lg);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(12px);
+}
+
+.toolbar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-lg);
+}
+
+.toolbar-kicker {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-accent-blue);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.toolbar-copy {
+  margin: var(--space-xs) 0 0;
+  max-width: 62ch;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.primary-action,
+.secondary-action,
+.card-link,
+.status-chip {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.primary-action,
+.secondary-action {
+  min-height: 44px;
+  padding: 0 18px;
+  font-weight: 700;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, var(--color-accent-blue) 0%, var(--color-accent-blue-dark) 100%);
+  color: var(--color-text-inverse);
+  box-shadow: var(--shadow-md);
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.primary-action:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.primary-action--running {
+  background: linear-gradient(135deg, var(--color-danger) 0%, var(--color-danger-dark) 100%);
+}
+
+.primary-action:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-accent-blue) 72%, white);
+  outline-offset: 2px;
+}
+
+.primary-action--running:focus-visible {
+  outline-color: color-mix(in srgb, var(--color-danger) 72%, white);
+}
+
+.secondary-action,
+.card-link {
+  background: transparent;
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.card-link {
+  min-height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.toolbar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-md);
+}
+
+.toolbar-card {
+  display: grid;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-subtle);
+}
+
+.toolbar-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.toolbar-card__header h4 {
+  margin: 0;
+}
+
+.toolbar-card__meta {
+  margin: 0;
+  font-size: 13px;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.field__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.field__control,
+.field__range {
+  width: 100%;
+}
+
+.field__control {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  color: var(--color-text-primary);
+}
+
+.field__range {
+  accent-color: var(--color-accent-blue);
+}
+
+.field__value {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 12px;
+  background: color-mix(in srgb, var(--truck-status-color, var(--color-bg-card)) 12%, var(--color-bg-card));
+  color: var(--color-text-primary);
+  border-color: color-mix(in srgb, var(--truck-status-color, var(--color-border)) 40%, var(--color-border));
+}
+
+.status-chip strong {
+  font-size: 12px;
+}
+
+.status-chip--active {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--truck-status-color, var(--color-accent-blue)) 55%, transparent);
+}
+
+@media (max-width: 1024px) {
+  .toolbar-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .toolbar-shell {
+    padding: var(--space-md);
+  }
+
+  .toolbar-header {
+    flex-direction: column;
+  }
+}

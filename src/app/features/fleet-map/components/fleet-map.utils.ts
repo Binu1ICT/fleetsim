@@ -8,16 +8,19 @@ import type {
   FleetSummaryViewModel,
   MapTruckViewModel,
   MapZoneViewModel,
+  StatusFilterOptionViewModel,
   StatusMetricViewModel,
   ZoneConfig
 } from '../../../interfaces/fleet-map.interfaces';
 
+/** Mutable accumulator used while reducing a fleet into summary metrics. */
 type FleetSummaryAccumulator = {
   -readonly [Key in keyof FleetSummaryViewModel]: FleetSummaryViewModel[Key];
 } & {
   speedTotal: number;
 };
 
+/** Empty accumulator seed used for fleet summary reduction. */
 const EMPTY_FLEET_SUMMARY: FleetSummaryAccumulator = {
   total: 0,
   active: 0,
@@ -29,6 +32,7 @@ const EMPTY_FLEET_SUMMARY: FleetSummaryAccumulator = {
   speedTotal: 0
 };
 
+/** Aggregates a truck list into dashboard summary metrics. */
 export function summarizeFleet(trucks: readonly Truck[]): FleetSummaryViewModel {
   const summary = trucks.reduce<FleetSummaryAccumulator>((accumulator, truck) => {
     accumulator.total += 1;
@@ -67,6 +71,7 @@ export function summarizeFleet(trucks: readonly Truck[]): FleetSummaryViewModel 
   };
 }
 
+/** Creates the summary tile view model for a given tile identifier. */
 export function createDashboardTile(tileId: DashboardTileId, summary: FleetSummaryViewModel): DashboardTileViewModel {
   switch (tileId) {
     case 'fleet-size':
@@ -86,6 +91,7 @@ export function createDashboardTile(tileId: DashboardTileId, summary: FleetSumma
   }
 }
 
+/** Maps fleet summary data into the status metric cards shown in the status tile. */
 export function createStatusMetrics(summary: FleetSummaryViewModel): StatusMetricViewModel[] {
   return STATUS_METRIC_CONFIG.map(({ label, key, className }) => ({
     label,
@@ -94,6 +100,7 @@ export function createStatusMetrics(summary: FleetSummaryViewModel): StatusMetri
   }));
 }
 
+/** Restores a saved tile order while validating completeness and uniqueness. */
 export function restoreDashboardTileOrder(savedOrder: string | null): DashboardTileId[] {
   if (!savedOrder) {
     return [...DEFAULT_DASHBOARD_TILE_ORDER];
@@ -124,6 +131,7 @@ export function restoreDashboardTileOrder(savedOrder: string | null): DashboardT
   }
 }
 
+/** Converts a raw zone configuration into percentage-based map coordinates. */
 export function createMapZoneViewModel(zone: ZoneConfig): MapZoneViewModel {
   return {
     label: zone.label,
@@ -135,6 +143,7 @@ export function createMapZoneViewModel(zone: ZoneConfig): MapZoneViewModel {
   };
 }
 
+/** Converts a truck model into a percentage-based map marker view model. */
 export function createMapTruckViewModel(truck: Truck): MapTruckViewModel {
   return {
     ...truck,
@@ -144,16 +153,54 @@ export function createMapTruckViewModel(truck: Truck): MapTruckViewModel {
   };
 }
 
+/** Builds an accessible marker label for a truck on the map. */
 export function createTruckTitle(truck: Pick<Truck, 'id' | 'status' | 'speed'>): string {
   return `${truck.id} - ${truck.status} - ${truck.speed} km/h`;
 }
 
+/** Filters trucks by search term and active status selection. */
+export function filterTrucks(
+  trucks: readonly Truck[],
+  searchTerm: string,
+  activeStatuses: readonly Truck['status'][]
+): Truck[] {
+  const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+  const allowedStatuses = new Set(activeStatuses);
+
+  return trucks.filter(truck => {
+    const matchesSearch = !normalizedSearchTerm || truck.id.toLowerCase().includes(normalizedSearchTerm);
+    const matchesStatus = allowedStatuses.has(truck.status);
+    return matchesSearch && matchesStatus;
+  });
+}
+
+/** Creates the status filter chip view models from current fleet state. */
+export function createStatusFilterOptions(
+  trucks: readonly Truck[],
+  activeStatuses: readonly Truck['status'][]
+): StatusFilterOptionViewModel[] {
+  const activeStatusSet = new Set(activeStatuses);
+
+  return STATUS_METRIC_CONFIG.map(({ label, key, className }) => {
+    const status = key.toUpperCase() as Truck['status'];
+    return {
+      status,
+      label,
+      count: trucks.filter(truck => truck.status === status).length,
+      active: activeStatusSet.has(status),
+      className
+    };
+  });
+}
+
+/** Reads the persisted dashboard tile order in browser environments. */
 export function readDashboardTileOrder(isBrowser: boolean): DashboardTileId[] {
   return isBrowser
     ? restoreDashboardTileOrder(localStorage.getItem(DASHBOARD_TILE_STORAGE_KEY))
     : [...DEFAULT_DASHBOARD_TILE_ORDER];
 }
 
+  /** Persists the dashboard tile order when local storage is available. */
 export function writeDashboardTileOrder(isBrowser: boolean, tileOrder: readonly DashboardTileId[]): void {
   if (!isBrowser) {
     return;
@@ -162,6 +209,7 @@ export function writeDashboardTileOrder(isBrowser: boolean, tileOrder: readonly 
   localStorage.setItem(DASHBOARD_TILE_STORAGE_KEY, JSON.stringify(tileOrder));
 }
 
+/** Creates a simple metric-style summary tile view model. */
 function createMetricTile(
   id: Exclude<DashboardTileId, 'status-mix'>,
   title: string,
@@ -177,6 +225,7 @@ function createMetricTile(
   };
 }
 
+/** Converts an absolute coordinate into a percentage of the supplied maximum. */
 export function toPercent(value: number, max: number): number {
   return (value / max) * 100;
 }

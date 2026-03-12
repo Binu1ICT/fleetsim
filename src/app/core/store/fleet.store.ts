@@ -2,11 +2,14 @@ import { Injectable, signal, computed } from '@angular/core';
 import { Truck } from '../models/truck.model';
 
 @Injectable({ providedIn: 'root' })
+/** Signal-backed store that owns fleet telemetry and mutation diagnostics. */
 export class FleetStore {
   private readonly _trucks = signal<Truck[]>([]);
   private readonly _errors = signal<string[]>([]);
 
+  /** Read-only fleet collection exposed to consumers. */
   readonly trucks = computed(() => this._trucks());
+  /** Read-only list of validation or mutation errors. */
   readonly errors = computed(() => this._errors());
 
   /** Replace the full fleet state. */

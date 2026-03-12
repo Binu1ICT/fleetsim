@@ -1,0 +1,105 @@
+.truck-info-panel {
+  display: grid;
+  gap: var(--space-md);
+  background: color-mix(in srgb, var(--color-bg-card) 92%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(10px);
+}
+
+.panel-header {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.panel-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.assistive-note {
+  margin: 0;
+  font-size: 13px;
+}
+
+.truck-cards {
+  display: grid;
+  gap: var(--space-sm);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.truck-card {
+  width: 100%;
+  display: grid;
+  gap: var(--space-sm);
+  text-align: left;
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-left: 4px solid var(--truck-status-color, var(--map-status-default));
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  box-shadow: var(--effect-shadow-soft);
+}
+
+.truck-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.truck-id {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.truck-status-badge {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--truck-status-color, var(--map-status-default));
+  border: 1px solid var(--effect-border-strong-subtle);
+}
+
+.truck-details {
+  display: grid;
+  gap: 6px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.detail-label {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.detail-value {
+  color: var(--color-text-primary);
+  font-weight: 700;
+}
+
+.empty-state {
+  display: grid;
+  gap: var(--space-xs);
+  place-items: start;
+  padding: var(--space-lg);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-subtle);
+}
+
+.empty-state h3,
+.empty-state p {
+  margin: 0;
+}

@@ -1,0 +1,102 @@
+<section class="toolbar-shell" aria-labelledby="simulation-toolbar-title">
+  <div class="toolbar-header">
+    <div>
+      <p class="toolbar-kicker">Scenario controls</p>
+      <h3 id="simulation-toolbar-title">Dispatch controls and view preferences</h3>
+      <p class="toolbar-copy">Tune the simulation, filter the visible fleet, and personalize the dashboard presentation.</p>
+    </div>
+
+    <div class="toolbar-actions">
+      <button
+        class="primary-action"
+        type="button"
+        [class.primary-action--running]="running()"
+        [attr.aria-pressed]="running()"
+        (click)="toggleSimulation.emit()">
+        {{ running() ? 'Pause' : 'Start' }} simulation
+      </button>
+      <button class="secondary-action" type="button" (click)="resetScenario.emit()">Reset scenario</button>
+    </div>
+  </div>
+
+  <div class="toolbar-grid">
+    <section class="toolbar-card" aria-labelledby="fleet-filter-title">
+      <div class="toolbar-card__header">
+        <h4 id="fleet-filter-title">Fleet filter</h4>
+        @if (hasActiveFilters()) {
+          <button class="card-link" type="button" (click)="clearFilters.emit()">Clear filters</button>
+        }
+      </div>
+
+      <label class="field">
+        <span class="field__label">Search by truck id</span>
+        <input class="field__control" type="search" [value]="searchTerm()" placeholder="Search T-001" (input)="handleSearchInput($event)" />
+      </label>
+
+      <div class="filter-group" role="group" aria-label="Filter trucks by status">
+        @for (filter of filters(); track filter.status) {
+          <button
+            class="status-chip"
+            type="button"
+            [class.status-chip--active]="filter.active"
+            [class]="'status-chip ' + filter.className"
+            [attr.aria-pressed]="filter.active"
+            (click)="handleStatusToggle(filter.status)">
+            <span>{{ filter.label }}</span>
+            <strong>{{ filter.count }}</strong>
+          </button>
+        }
+      </div>
+
+      <p class="toolbar-card__meta">Showing {{ truckCount() }} of {{ totalTruckCount() }} trucks in the active view.</p>
+    </section>
+
+    <section class="toolbar-card" aria-labelledby="scenario-title">
+      <div class="toolbar-card__header">
+        <h4 id="scenario-title">Simulation tuning</h4>
+      </div>
+
+      <label class="field">
+        <span class="field__label">Fleet size</span>
+        <input
+          class="field__range"
+          type="range"
+          [min]="limits().truckCount.min"
+          [max]="limits().truckCount.max"
+          [step]="limits().truckCount.step"
+          [value]="settings().truckCount"
+          (change)="handleTruckCountInput($event)"
+        />
+        <span class="field__value">{{ settings().truckCount }} trucks</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Tick interval</span>
+        <input
+          class="field__range"
+          type="range"
+          [min]="limits().tickMs.min"
+          [max]="limits().tickMs.max"
+          [step]="limits().tickMs.step"
+          [value]="settings().tickMs"
+          (change)="handleTickMsInput($event)"
+        />
+        <span class="field__value">{{ settings().tickMs }} ms</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Dump dwell time</span>
+        <input
+          class="field__range"
+          type="range"
+          [min]="limits().dumpDwellTicks.min"
+          [max]="limits().dumpDwellTicks.max"
+          [step]="limits().dumpDwellTicks.step"
+          [value]="settings().dumpDwellTicks"
+          (change)="handleDumpDwellInput($event)"
+        />
+        <span class="field__value">{{ settings().dumpDwellTicks }} ticks</span>
+      </label>
+    </section>
+  </div>
+</section>

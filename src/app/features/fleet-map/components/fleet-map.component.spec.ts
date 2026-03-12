@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FleetMapComponent } from './fleet-map.component';
 
+/** Verifies the dashboard container and facade wiring for the fleet feature. */
 describe('FleetMapComponent', () => {
   let component: FleetMapComponent;
   let fixture: ComponentFixture<FleetMapComponent>;
@@ -19,29 +20,38 @@ describe('FleetMapComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should expose static map view models', () => {
-    expect(component.mapZones.length).toBe(2);
-    expect(component.mapTrucks().length).toBeGreaterThan(0);
-    expect(component.haulRoadPolylinePoints.length).toBeGreaterThan(0);
+  it('should expose facade-driven map view models', () => {
+    expect(component.facade.mapZones.length).toBe(2);
+    expect(component.facade.mapTrucks().length).toBeGreaterThan(0);
+    expect(component.facade.haulRoadPolylinePoints.length).toBeGreaterThan(0);
   });
 
   it('should initialize with running state', () => {
-    expect(component.running()).toBe(true); // sim starts automatically
+    expect(component.facade.running()).toBe(true);
   });
 
   it('should toggle simulation', () => {
-    const initialState = component.running();
-    component.toggleSimulation();
-    expect(component.running()).toBe(!initialState);
+    const initialState = component.facade.running();
+    component.facade.toggleSimulation();
+    expect(component.facade.running()).toBe(!initialState);
   });
 
   it('should update hovered truck state', () => {
-    const firstTruck = component.mapTrucks()[0];
+    const firstTruck = component.facade.mapTrucks()[0];
 
-    component.showTruckHover(firstTruck.id);
-    expect(component.hoveredTruck()?.id).toBe(firstTruck.id);
+    component.facade.showTruckHover(firstTruck.id);
+    expect(component.facade.hoveredTruck()?.id).toBe(firstTruck.id);
 
-    component.hideTruckHover(firstTruck.id);
-    expect(component.hoveredTruck()).toBeUndefined();
+    component.facade.hideTruckHover(firstTruck.id);
+    expect(component.facade.hoveredTruck()).toBeUndefined();
+  });
+
+  it('should filter trucks by search term', () => {
+    const firstTruck = component.facade.trucks()[0];
+
+    component.facade.setSearchTerm(firstTruck.id);
+
+    expect(component.facade.visibleTrucks().length).toBe(1);
+    expect(component.facade.visibleTrucks()[0].id).toBe(firstTruck.id);
   });
 });

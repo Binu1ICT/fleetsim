@@ -2,6 +2,7 @@ import { FleetStore } from './fleet.store';
 import { Truck } from '../models/truck.model';
 import { TRUCK_STATUS } from '../../constants/truck-status.constants';
 
+/** Verifies fleet state mutations and validation error handling. */
 describe('FleetStore', () => {
   let store: FleetStore;
 

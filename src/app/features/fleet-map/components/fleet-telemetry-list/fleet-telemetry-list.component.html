@@ -1,0 +1,38 @@
+<section class="truck-info-panel" aria-labelledby="fleet-status-title" aria-describedby="fleet-help">
+  <div class="panel-header">
+    <h2 id="fleet-status-title" class="panel-title">Fleet status</h2>
+    <p id="fleet-help" class="assistive-note">{{ headline() }}</p>
+  </div>
+
+  @if (trucks().length) {
+    <ul class="truck-cards" role="list" aria-label="Truck telemetry list">
+      @for (truck of trucks(); track truck.id) {
+        <li>
+          <div class="truck-card" [class]="'truck-card status--' + truck.status.toLowerCase()">
+            <div class="truck-header">
+              <span class="truck-id">{{ truck.id }}</span>
+              <div class="truck-status-badge" [class]="'truck-status-badge status--' + truck.status.toLowerCase()" [attr.aria-label]="'Status ' + truck.status">
+                {{ truck.status }}
+              </div>
+            </div>
+            <div class="truck-details">
+              <div class="detail-row">
+                <span class="detail-label">Speed</span>
+                <span class="detail-value">{{ truck.speed }} km/h</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Position</span>
+                <span class="detail-value">{{ truck.x | number:'1.0-0' }}, {{ truck.y | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="empty-state" role="status">
+      <h3>No visible trucks</h3>
+      <p>{{ emptyStateMessage() }}</p>
+    </div>
+  }
+</section>

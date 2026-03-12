@@ -36,6 +36,21 @@
   --color-danger: #ef4444;
   --color-danger-dark: #dc2626;
 
+  /* Shell surfaces */
+  --color-shell-header-start: #0f172a;
+  --color-shell-header-end: #1e293b;
+  --color-shell-footer-bg: #0f172a;
+  --color-shell-on-dark: #ffffff;
+  --color-shell-on-dark-muted: #e2e8f0;
+
+  /* Elevated surfaces */
+  --surface-glass: rgba(255, 255, 255, 0.92);
+  --surface-glass-strong: rgba(255, 255, 255, 0.96);
+  --surface-glass-soft: rgba(255, 255, 255, 0.82);
+  --surface-glass-subtle: rgba(255, 255, 255, 0.78);
+  --surface-hero-start: rgba(255, 255, 255, 0.96);
+  --surface-hero-end: rgba(239, 246, 255, 0.96);
+
   /* Effects */
   --effect-shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.05);
   --effect-shadow-marker: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -96,6 +111,75 @@
   --transition-fast: 150ms ease-in-out;
 }
 
+:root[data-theme='dark'] {
+  --color-primary: #e2e8f0;
+  --color-primary-light: #cbd5e1;
+  --color-accent-blue: #60a5fa;
+  --color-accent-blue-dark: #3b82f6;
+
+  --color-bg-light: #020617;
+  --color-bg-card: #0f172a;
+  --color-bg-subtle: #111827;
+  --color-surface-subtle: #162133;
+  --color-border: #23324a;
+  --color-border-subtle: #2e405f;
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: #cbd5e1;
+  --color-text-tertiary: #e2e8f0;
+  --color-text-inverse: #020617;
+  --color-text-inverse-muted: #0f172a;
+
+  --color-shell-header-start: #020617;
+  --color-shell-header-end: #0f172a;
+  --color-shell-footer-bg: #020617;
+  --color-shell-on-dark: #f8fafc;
+  --color-shell-on-dark-muted: #cbd5e1;
+
+  --surface-glass: rgba(15, 23, 42, 0.84);
+  --surface-glass-strong: rgba(15, 23, 42, 0.94);
+  --surface-glass-soft: rgba(15, 23, 42, 0.78);
+  --surface-glass-subtle: rgba(15, 23, 42, 0.72);
+  --surface-hero-start: rgba(15, 23, 42, 0.94);
+  --surface-hero-end: rgba(17, 24, 39, 0.96);
+
+  --effect-shadow-soft: 0 1px 3px rgba(2, 6, 23, 0.45);
+  --effect-shadow-marker: 0 4px 8px rgba(2, 6, 23, 0.45);
+  --shadow-md: 0 10px 20px rgba(2, 6, 23, 0.32);
+  --shadow-lg: 0 18px 30px rgba(2, 6, 23, 0.36);
+  --shadow-xl: 0 24px 48px rgba(2, 6, 23, 0.42);
+
+  --map-zone-tag-bg: rgba(15, 23, 42, 0.96);
+  --map-zone-tag-text: #f8fafc;
+  --map-zone-tag-border: #334155;
+  --map-zone-tag-shadow: 0 6px 16px rgba(2, 6, 23, 0.34);
+  --map-hover-bg: #0f172a;
+  --map-hover-text: #f8fafc;
+  --map-hover-border: #334155;
+  --map-hover-shadow: 0 16px 32px rgba(2, 6, 23, 0.38);
+  --map-hover-row-label: #cbd5e1;
+  --map-hover-badge-text: #0f172a;
+  --map-hover-badge-border: rgba(248, 250, 252, 0.2);
+  --map-truck-label-bg: rgba(15, 23, 42, 0.96);
+  --map-truck-label-border: #cbd5e1;
+  --map-truck-label-text: #f8fafc;
+  --map-truck-label-shadow: 0 8px 18px rgba(2, 6, 23, 0.4);
+}
+
+:root[data-density='compact'] {
+  --space-sm: 6px;
+  --space-md: 12px;
+  --space-lg: 18px;
+  --space-xl: 24px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+}
+
+:root[data-contrast='high'] {
+  --color-border: #0f172a;
+  --effect-border-strong-subtle: rgba(15, 23, 42, 0.65);
+  --map-marker-stroke: #0f172a;
+}
+
 /* ========================================
    Reset & Base Styles
    ======================================== */
@@ -117,6 +201,15 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+:root[data-motion='reduced'] *,
+:root[data-motion='reduced'] *::before,
+:root[data-motion='reduced'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
 }
 
 /* ========================================
@@ -231,7 +324,7 @@ app-root {
   min-height: 28px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--map-zone-tag-bg);
   color: var(--map-zone-tag-text);
   border: 1px solid var(--map-zone-tag-border);
   box-shadow: var(--map-zone-tag-shadow);
@@ -375,7 +468,7 @@ fleet-map {
     padding: var(--space-xl);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.96) 0%, rgba(239, 246, 255, 0.96) 100%);
+    background: linear-gradient(135deg, var(--surface-hero-start) 0%, var(--surface-hero-end) 100%);
     box-shadow: var(--shadow-lg);
   }
 
@@ -396,18 +489,6 @@ fleet-map {
     margin-bottom: var(--space-sm);
     font-size: clamp(28px, 4vw, 40px);
     letter-spacing: -0.04em;
-  }
-
-  .hero-text {
-    max-width: 60ch;
-    margin-bottom: 0;
-    font-size: 15px;
-  }
-
-  .hero-actions {
-    display: grid;
-    gap: var(--space-sm);
-    justify-items: end;
   }
 
   .simulation-pill {
@@ -431,10 +512,14 @@ fleet-map {
 
   .summary-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-md);
     align-items: stretch;
     user-select: none;
+  }
+
+  .summary-card--status {
+    grid-column: span 1;
   }
 
   .summary-card {
@@ -442,7 +527,7 @@ fleet-map {
     gap: 0;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--surface-glass);
     box-shadow: var(--shadow-md);
     cursor: grab;
     touch-action: none;
@@ -498,7 +583,7 @@ fleet-map {
     height: 36px;
     border: 1px solid var(--color-border-subtle);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.82);
+    background: var(--surface-glass-soft);
     color: var(--color-text-secondary);
     cursor: grab;
     touch-action: none;
@@ -510,7 +595,7 @@ fleet-map {
   }
 
   .summary-drag-handle:hover {
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--surface-glass-strong);
     border-color: color-mix(in srgb, var(--color-accent-blue) 24%, var(--color-border-subtle));
     color: var(--color-text-primary);
     transform: scale(1.04);
@@ -567,15 +652,15 @@ fleet-map {
     gap: 4px;
     min-width: 0;
     padding: 12px;
-    border: 1px solid color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 28%, white);
+    border: 1px solid color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 28%, var(--color-bg-card));
     border-radius: 14px;
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 18%, white),
-      color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 10%, white)
+      color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 18%, var(--color-bg-card)),
+      color-mix(in srgb, var(--truck-status-color, var(--map-status-default)) 10%, var(--color-bg-card))
     );
     color: var(--color-text-primary);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--color-text-primary) 14%, transparent);
   }
 
   .status-metric__label {
@@ -614,7 +699,7 @@ fleet-map {
     height: 100%;
     min-height: 166px;
     border: 2px dashed color-mix(in srgb, var(--color-accent-blue) 28%, var(--color-border));
-    background: rgba(255, 255, 255, 0.92);
+    background: var(--surface-glass);
     box-shadow: var(--shadow-md);
     backdrop-filter: blur(10px);
     opacity: 0.82;
@@ -649,7 +734,7 @@ fleet-map {
   .legend-panel .mat-expansion-panel-header:focus-visible {
     outline: 3px solid var(--color-accent-blue);
     outline-offset: -3px;
-    background: color-mix(in srgb, var(--color-accent-blue) 8%, white);
+    background: color-mix(in srgb, var(--color-accent-blue) 8%, var(--color-bg-card));
   }
 
   .legend-panel .mat-content {
@@ -761,7 +846,7 @@ fleet-map {
     padding: 8px 12px;
     border: 1px solid var(--color-border-subtle);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.78);
+    background: var(--surface-glass-subtle);
     white-space: nowrap;
   }
 
@@ -770,10 +855,6 @@ fleet-map {
     .map-panel-header {
       flex-direction: column;
       align-items: flex-start;
-    }
-
-    .hero-actions {
-      justify-items: start;
     }
 
     .legend-panel .mat-expansion-panel-header {
@@ -805,15 +886,6 @@ fleet-map {
   @media (max-width: 768px) {
     .dashboard-hero {
       padding: var(--space-lg);
-    }
-
-    .hero-actions {
-      width: 100%;
-      justify-items: stretch;
-    }
-
-    .hero-actions > * {
-      width: 100%;
     }
 
     .summary-grid {

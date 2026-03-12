@@ -1,0 +1,23 @@
+<mat-accordion class="legend-accordion">
+  <mat-expansion-panel class="legend-panel">
+    <mat-expansion-panel-header aria-controls="truck-status-legend-content" tabindex="0">
+      <mat-panel-title>
+        <span id="legend-title" class="legend-title">Truck status legend</span>
+      </mat-panel-title>
+      <mat-panel-description>Expand or collapse the status guide</mat-panel-description>
+    </mat-expansion-panel-header>
+
+    <div id="truck-status-legend-content" class="legend" aria-labelledby="legend-title">
+      <ul class="legend-items" role="list">
+        @for (item of legendItems(); track item.label) {
+          <li class="legend-item">
+            <svg class="legend-marker" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+              <circle class="legend-marker-circle" [class]="'legend-marker-circle ' + item.markerClass" cx="8" cy="8" r="6" />
+            </svg>
+            <span>{{ item.label }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  </mat-expansion-panel>
+</mat-accordion>

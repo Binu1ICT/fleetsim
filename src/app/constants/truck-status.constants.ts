@@ -9,4 +9,5 @@ export const TRUCK_STATUS = {
   HAULING: 'HAULING'
 } as const;
 
+/** Union type of all supported truck status values. */
 export type TruckStatusType = typeof TRUCK_STATUS[keyof typeof TRUCK_STATUS];
