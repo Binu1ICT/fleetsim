@@ -4,6 +4,7 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDragPreview
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { DUMP_ZONE, HAUL_ROAD_TO_DUMP, LOADING_ZONE, SimulationZone } from '../../../core/constants/simulation.constants';
 import { SimulationService } from '../../../core/services/simulation.service';
 import { FleetStore } from '../../../core/store/fleet.store';
 import { TRUCK_STATUS } from '../../../core/constants/truck-status.constants';
@@ -16,18 +17,10 @@ interface ZoneConfig {
   readonly height: number;
   readonly label: string;
   readonly fillColorToken: string;
-  readonly strokeColorToken: string;
-  readonly labelOffsetY?: number;
 }
 
 type DashboardTileId = 'fleet-size' | 'active-units' | 'average-speed' | 'status-mix';
 type StatusSummaryKey = 'loading' | 'hauling' | 'dumping' | 'idle';
-type TruckStatusColorToken =
-  | '--map-status-loading'
-  | '--map-status-hauling'
-  | '--map-status-dumping'
-  | '--map-status-idle'
-  | '--map-status-default';
 
 interface FleetSummaryViewModel {
   readonly total: number;
@@ -66,11 +59,6 @@ interface DashboardTileViewModel {
   readonly statusMetrics?: readonly StatusMetricViewModel[];
 }
 
-interface SiteCoordinate {
-  readonly x: number;
-  readonly y: number;
-}
-
 interface MapZoneViewModel {
   readonly label: string;
   readonly left: number;
@@ -95,21 +83,6 @@ const DEFAULT_DASHBOARD_TILE_ORDER: readonly DashboardTileId[] = [
 
 const SITE_WIDTH = 1000;
 const SITE_HEIGHT = 800;
-
-const HAUL_ROAD_COORDINATES: readonly SiteCoordinate[] = [
-  { x: 160, y: 160 },
-  { x: 220, y: 180 },
-  { x: 290, y: 210 },
-  { x: 360, y: 250 },
-  { x: 430, y: 300 },
-  { x: 500, y: 360 },
-  { x: 570, y: 420 },
-  { x: 640, y: 480 },
-  { x: 710, y: 540 },
-  { x: 780, y: 590 },
-  { x: 850, y: 630 },
-  { x: 900, y: 660 }
-];
 
 const STATUS_METRIC_CONFIG: readonly StatusMetricConfig[] = [
   {
@@ -143,17 +116,26 @@ const LEGEND_ITEMS: readonly LegendItemViewModel[] = STATUS_METRIC_CONFIG.map(({
   markerClass
 }));
 
-const STATUS_COLOR_TOKENS: Record<Truck['status'], TruckStatusColorToken> = {
-  [TRUCK_STATUS.LOADING]: '--map-status-loading',
-  [TRUCK_STATUS.HAULING]: '--map-status-hauling',
-  [TRUCK_STATUS.DUMPING]: '--map-status-dumping',
-  [TRUCK_STATUS.IDLE]: '--map-status-idle'
-};
-
 const ZONE_CLASS_BY_FILL_TOKEN: Record<ZoneConfig['fillColorToken'], string> = {
   '--map-zone-loading-fill': 'map-zone-card--loading',
   '--map-zone-dump-fill': 'map-zone-card--dumping'
 };
+
+function createZoneConfig(zone: SimulationZone, label: string, fillColorToken: ZoneConfig['fillColorToken']): ZoneConfig {
+  return {
+    x: zone.x,
+    y: zone.y,
+    width: zone.w,
+    height: zone.h,
+    label,
+    fillColorToken
+  };
+}
+
+const MAP_ZONES: readonly ZoneConfig[] = [
+  createZoneConfig(LOADING_ZONE, 'Stockpile Lot 1', '--map-zone-loading-fill'),
+  createZoneConfig(DUMP_ZONE, 'Stockpile Lot 2', '--map-zone-dump-fill')
+];
 
 @Component({
   selector: 'fleet-map',
@@ -169,33 +151,13 @@ const ZONE_CLASS_BY_FILL_TOKEN: Record<ZoneConfig['fillColorToken'], string> = {
  */
 export class FleetMapComponent implements OnInit, OnDestroy {
   readonly legendItems = LEGEND_ITEMS;
+  readonly mapZones: readonly MapZoneViewModel[] = MAP_ZONES.map(zone => this.createMapZone(zone));
 
   readonly store = inject(FleetStore);
   private readonly sim = inject(SimulationService);
   private readonly dashboardTileStorageKey = 'fleet-map.dashboard-tile-order';
 
   private unloadHandler?: () => void;
-
-  private readonly zones: readonly ZoneConfig[] = [
-    {
-      x: 80,
-      y: 80,
-      width: 160,
-      height: 160,
-      label: 'Stockpile Lot 1',
-      fillColorToken: '--map-zone-loading-fill',
-      strokeColorToken: '--map-zone-loading-stroke'
-    },
-    {
-      x: 820,
-      y: 580,
-      width: 160,
-      height: 160,
-      label: 'Stockpile Lot 2',
-      fillColorToken: '--map-zone-dump-fill',
-      strokeColorToken: '--map-zone-dump-stroke'
-    }
-  ];
 
   /**
    * Registers the beforeunload handler to stop simulation on page unload.
@@ -239,13 +201,15 @@ export class FleetMapComponent implements OnInit, OnDestroy {
 
     return this.dashboardTileOrder().map(tileId => this.createDashboardTile(tileId, summary));
   });
-  readonly mapZones: readonly MapZoneViewModel[] = this.zones.map(zone => this.createMapZone(zone));
   readonly mapTrucks = computed<MapTruckViewModel[]>(() => this.store.trucks().map(truck => this.createMapTruck(truck)));
+  readonly mapTrucksById = computed(() => {
+    return new Map(this.mapTrucks().map(truck => [truck.id, truck] as const));
+  });
   readonly hoveredTruck = computed<MapTruckViewModel | undefined>(() => {
     const truckId = this.hoveredTruckId();
-    return truckId ? this.mapTrucks().find(truck => truck.id === truckId) : undefined;
+    return truckId ? this.mapTrucksById().get(truckId) : undefined;
   });
-  readonly haulRoadPolylinePoints = HAUL_ROAD_COORDINATES
+  readonly haulRoadPolylinePoints = HAUL_ROAD_TO_DUMP
     .map(({ x, y }) => `${this.toPercent(x, SITE_WIDTH)},${this.toPercent(y, SITE_HEIGHT)}`)
     .join(' ');
 
@@ -307,11 +271,6 @@ export class FleetMapComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.error('[FleetMapComponent] Error toggling simulation:', e);
     }
-  }
-
-  /** Resolve the theme color used for a truck status. */
-  statusColor(status: 'LOADING' | 'HAULING' | 'DUMPING' | 'IDLE'): string {
-    return this.themeColor(STATUS_COLOR_TOKENS[status] ?? '--map-status-default');
   }
 
   /** Shows the hover card for the supplied truck id on the static site map. */
@@ -500,18 +459,18 @@ export class FleetMapComponent implements OnInit, OnDestroy {
       ...truck,
       left: this.toPercent(truck.x, SITE_WIDTH),
       top: this.toPercent(truck.y, SITE_HEIGHT),
-      title: `${truck.id} - ${truck.status} - ${truck.speed} km/h`
+      title: this.createTruckTitle(truck)
     };
+  }
+
+  /** Builds the accessible title used for truck markers and hover state. */
+  private createTruckTitle(truck: Pick<Truck, 'id' | 'status' | 'speed'>): string {
+    return `${truck.id} - ${truck.status} - ${truck.speed} km/h`;
   }
 
   /** Converts a site coordinate value into a percentage of the rendered map size. */
   private toPercent(value: number, max: number): number {
     return (value / max) * 100;
-  }
-
-  /** Reads a CSS custom property from the document root and returns its trimmed value. */
-  private themeColor(variableName: string): string {
-    return getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
   }
 }
 

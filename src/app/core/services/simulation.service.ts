@@ -36,10 +36,11 @@ import { TRUCK_STATUS } from '../constants/truck-status.constants';
 export class SimulationService {
   private readonly loadingZone = LOADING_ZONE;
   private readonly dumpZone = DUMP_ZONE;
+  private readonly dumpZoneCenter = this.zoneCenter(this.dumpZone);
   private readonly truckDwellTime = new Map<string, number>();
   private readonly truckDestination = new Map<string, SimulationDestination>();
   private readonly truckPathIndex = new Map<string, number>();
-  private readonly truckPath = new Map<string, SimulationPoint[]>();
+  private readonly truckPath = new Map<string, readonly SimulationPoint[]>();
 
   private readonly store = inject(FleetStore);
   private readonly ngZone = inject(NgZone);
@@ -57,11 +58,13 @@ export class SimulationService {
     if (this.tickSub && !this.tickSub.closed) {
       return;
     }
-    this.tickSub = interval(SIMULATION_TICK_MS).subscribe({
-      next: () => {
-        this.ngZone.run(() => this.tick());
-      },
-      error: (error: unknown) => this.handleSimulationError('Tick interval error', error)
+    this.ngZone.runOutsideAngular(() => {
+      this.tickSub = interval(SIMULATION_TICK_MS).subscribe({
+        next: () => {
+          this.ngZone.run(() => this.tick());
+        },
+        error: (error: unknown) => this.handleSimulationError('Tick interval error', error)
+      });
     });
   }
 
@@ -126,8 +129,8 @@ export class SimulationService {
   }
 
   /** Choose the haul road that matches the current destination. */
-  private generateRoadPath(destination: SimulationDestination): SimulationPoint[] {
-    return destination === 'dump' ? [...HAUL_ROAD_TO_DUMP] : [...HAUL_ROAD_TO_LOAD];
+  private generateRoadPath(destination: SimulationDestination): readonly SimulationPoint[] {
+    return destination === 'dump' ? HAUL_ROAD_TO_DUMP : HAUL_ROAD_TO_LOAD;
   }
 
   /** Run the core movement logic for a truck. */
@@ -141,9 +144,8 @@ export class SimulationService {
       this.truckDwellTime.set(t.id, dwell);
 
       if (dwell < DUMP_DWELL_TICKS) {
-        const center = this.zoneCenter(this.dumpZone);
-        const x = t.x + (center.x - t.x) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
-        const y = t.y + (center.y - t.y) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
+        const x = t.x + (this.dumpZoneCenter.x - t.x) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
+        const y = t.y + (this.dumpZoneCenter.y - t.y) * DUMP_RECENTER_FACTOR + this.rand(JITTER_RANGE.min, JITTER_RANGE.max);
         return { ...t, x, y, speed: 0, status: TRUCK_STATUS.DUMPING };
       }
 
@@ -223,7 +225,7 @@ export class SimulationService {
   }
 
   /** Ensures a truck has a valid haul-road path and current waypoint index. */
-  private ensureTruckPath(t: Truck, destination: SimulationDestination): { path: SimulationPoint[]; pathIndex: number } {
+  private ensureTruckPath(t: Truck, destination: SimulationDestination): { path: readonly SimulationPoint[]; pathIndex: number } {
     let path = this.truckPath.get(t.id);
     let pathIndex = this.truckPathIndex.get(t.id) || 0;
 
@@ -238,7 +240,7 @@ export class SimulationService {
   }
 
   /** Moves a truck toward its next waypoint or advances to the next waypoint when close enough. */
-  private moveTowardsWaypoint(t: Truck, path: SimulationPoint[], pathIndex: number, headingToDump: boolean): SimulationPoint {
+  private moveTowardsWaypoint(t: Truck, path: readonly SimulationPoint[], pathIndex: number, headingToDump: boolean): SimulationPoint {
     const nextWaypoint = path[Math.min(pathIndex + 1, path.length - 1)];
     const dx = nextWaypoint.x - t.x;
     const dy = nextWaypoint.y - t.y;
@@ -257,7 +259,7 @@ export class SimulationService {
   }
 
   /** Finds the closest waypoint on a route to the truck's current position. */
-  private findNearestWaypointIndex(path: SimulationPoint[], position: SimulationPoint): number {
+  private findNearestWaypointIndex(path: readonly SimulationPoint[], position: SimulationPoint): number {
     let closestIndex = 0;
     let minDistance = Infinity;
 

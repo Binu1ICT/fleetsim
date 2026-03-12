@@ -19,11 +19,10 @@ describe('FleetMapComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('statusColor maps statuses to expected colors', () => {
-    expect(component.statusColor('LOADING')).toBe('#f97316');
-    expect(component.statusColor('HAULING')).toBe('#10b981');
-    expect(component.statusColor('DUMPING')).toBe('#0ea5e9');
-    expect(component.statusColor('IDLE')).toBe('#9ca3af');
+  it('should expose static map view models', () => {
+    expect(component.mapZones.length).toBe(2);
+    expect(component.mapTrucks().length).toBeGreaterThan(0);
+    expect(component.haulRoadPolylinePoints.length).toBeGreaterThan(0);
   });
 
   it('should initialize with running state', () => {
@@ -34,5 +33,15 @@ describe('FleetMapComponent', () => {
     const initialState = component.running();
     component.toggleSimulation();
     expect(component.running()).toBe(!initialState);
+  });
+
+  it('should update hovered truck state', () => {
+    const firstTruck = component.mapTrucks()[0];
+
+    component.showTruckHover(firstTruck.id);
+    expect(component.hoveredTruck()?.id).toBe(firstTruck.id);
+
+    component.hideTruckHover(firstTruck.id);
+    expect(component.hoveredTruck()).toBeUndefined();
   });
 });
