@@ -1,4 +1,4 @@
-import { Injectable, NgZone, inject } from '@angular/core';
+import { Injectable, NgZone, OnDestroy, inject } from '@angular/core';
 import { interval, Subscription } from 'rxjs';
 import {
   ACTIVE_SPEED_RANGE,
@@ -33,7 +33,7 @@ import { TRUCK_STATUS } from '../constants/truck-status.constants';
  * Manages the simulation loop, route progression, zone transitions,
  * and synchronized updates to the fleet store.
  */
-export class SimulationService {
+export class SimulationService implements OnDestroy {
   private readonly loadingZone = LOADING_ZONE;
   private readonly dumpZone = DUMP_ZONE;
   private readonly dumpZoneCenter = this.zoneCenter(this.dumpZone);
@@ -51,6 +51,11 @@ export class SimulationService {
   constructor() {
     this.initFleet();
     this.start();
+  }
+
+  /** Release the simulation subscription when Angular destroys the service. */
+  ngOnDestroy(): void {
+    this.stop();
   }
 
   /** Start the simulation loop when it is not already running. */

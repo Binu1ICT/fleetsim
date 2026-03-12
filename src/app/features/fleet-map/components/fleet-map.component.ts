@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDragPreview, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -155,36 +155,31 @@ export class FleetMapComponent implements OnInit, OnDestroy {
 
   readonly store = inject(FleetStore);
   private readonly sim = inject(SimulationService);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly dashboardTileStorageKey = 'fleet-map.dashboard-tile-order';
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+  private beforeUnloadHandler?: () => void;
 
-  private unloadHandler?: () => void;
-
-  /**
-   * Registers the beforeunload handler to stop simulation on page unload.
-   */
   ngOnInit(): void {
-    this.unloadHandler = () => {
-      try { this.sim.stop(); } catch { /* ignore unload cleanup errors */ }
-    };
-    window.addEventListener('beforeunload', this.unloadHandler);
-    this.dashboardTileOrder.set(this.restoreDashboardTileOrder());
+    if (this.isBrowser) {
+      this.beforeUnloadHandler = () => {
+        this.stopSimulationSafely();
+      };
+
+      window.addEventListener('beforeunload', this.beforeUnloadHandler);
+      this.dashboardTileOrder.set(this.restoreDashboardTileOrder());
+    }
+
     this.running.set(this.sim.isRunning());
   }
 
-  /**
-   * Stops the simulation and removes the beforeunload handler to prevent memory leaks.
-   */
   ngOnDestroy(): void {
-    try {
-      this.sim.stop();
-    } catch (e) {
-      console.error('[FleetMapComponent] Error stopping simulation', e);
+    if (this.isBrowser && this.beforeUnloadHandler) {
+      window.removeEventListener('beforeunload', this.beforeUnloadHandler);
+      this.beforeUnloadHandler = undefined;
     }
-    
-    if (this.unloadHandler) {
-      window.removeEventListener('beforeunload', this.unloadHandler);
-      this.unloadHandler = undefined;
-    }
+
+    this.stopSimulationSafely();
   }
 
   /** Whether the simulation is currently running. */
@@ -393,6 +388,10 @@ export class FleetMapComponent implements OnInit, OnDestroy {
 
   /** Stores the user's dashboard tile order in local storage. */
   private persistDashboardTileOrder(tileOrder: readonly DashboardTileId[]): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     localStorage.setItem(this.dashboardTileStorageKey, JSON.stringify(tileOrder));
   }
 
@@ -410,6 +409,10 @@ export class FleetMapComponent implements OnInit, OnDestroy {
 
   /** Restores the saved tile order and falls back to the default layout when invalid. */
   private restoreDashboardTileOrder(): DashboardTileId[] {
+    if (!this.isBrowser) {
+      return [...DEFAULT_DASHBOARD_TILE_ORDER];
+    }
+
     const savedOrder = localStorage.getItem(this.dashboardTileStorageKey);
 
     if (!savedOrder) {
@@ -466,6 +469,15 @@ export class FleetMapComponent implements OnInit, OnDestroy {
   /** Builds the accessible title used for truck markers and hover state. */
   private createTruckTitle(truck: Pick<Truck, 'id' | 'status' | 'speed'>): string {
     return `${truck.id} - ${truck.status} - ${truck.speed} km/h`;
+  }
+
+  /** Stops the simulation while swallowing teardown errors during browser unload. */
+  private stopSimulationSafely(): void {
+    try {
+      this.sim.stop();
+    } catch (error) {
+      console.error('[FleetMapComponent] Error stopping simulation', error);
+    }
   }
 
   /** Converts a site coordinate value into a percentage of the rendered map size. */
